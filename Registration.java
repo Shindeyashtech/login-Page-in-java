@@ -1,5 +1,3 @@
-
-
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -9,80 +7,84 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 
-/**
- * Servlet implementation class Registration
- */
+@WebServlet("/Registration")
 public class Registration extends HttpServlet {
-	private static final long serialVersionUID = 1L;
-       
-    /**
-     * @see HttpServlet#HttpServlet()
-     */
+    private static final long serialVersionUID = 1L;
+
     public Registration() {
         super();
-        // TODO Auto-generated constructor stub
     }
 
-	/**
-	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
-	 */
-	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
-		response.getWriter().append("Served at: ").append(request.getContextPath());
-	}
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        // Handle GET request if needed
+    }
 
-	/**
-	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
-	 */
-	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
-		String JdbcUrl="jdbc:mysql://localhost:3306/login";
-		String dbUser ="root";
-		String dbPassword = "root";
-		
-		String Name =request.getParameter("RegistrationName");
-		String UName =request.getParameter("RegistrationUserName");
-		String email =request.getParameter("RegistrationEmail");
-		String Number =request.getParameter("RegistrationNumber");
-		String password =request.getParameter("RegistrationPassword");
-		String ConPassword = request.getParameter("RegistrationConfirmPassword");
-		
-		if (!password.equals(ConPassword)){
-			response.sendRedirect("Registration.jsp?=password do not match");
-			return;
-			}
-		try {
-			Class.forName("con.mysql.cj.jdbc.Driver");
-			try(Connection conn = DriverManager.getConnection(JdbcUrl,dbUser,dbPassword)){
-				String checkQuery = "select * from user where username = ? or email=?";
-				try(PreparedStatement ps = conn.prepareStatement(checkQuery)){
-					ps.setString(1,Name);
-					ps.setString(2,UName );
-					ps.setString(3,email);
-					ps.setString(4,Number );
-					ps.setString(5,password);
-					ps.setString(6,ConPassword);
-					
-					int rows = ps.executeUpdate();
-					if(rows > 0) {
-						response.sendRedirect("Registration.jsp?=Registration sucessful");
-					}else {
-						response.sendRedirect("Registration.jsp?=failed to Register user");
-					}	
-				}
-				
-			}catch (SQLException e) {
-				e.printStackTrace();
-				response.sendRedirect("Registration.jsp?=Database error");
-			}
-			catch (ClassNotFoundException e) {
-				e.printStackTrace();
-				response.sendRedirect("Registration.jsp?=Jdbc Driver npt found")
-			}
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String jdbcUrl = "jdbc:mysql://localhost:3306/login";
+        String dbUser = "root";
+        String dbPassword = "root";
 
-		
-	}
+        String name = request.getParameter("RegistrationName");
+        String username = request.getParameter("RegistrationUserName");
+        String email = request.getParameter("RegistrationEmail");
+        String number = request.getParameter("RegistrationNumber");
+        String password = request.getParameter("RegistrationPassword");
+        String confirmPassword = request.getParameter("RegistrationConfirmPassword");
 
+        if (!password.equals(confirmPassword)) {
+            response.sendRedirect("Registration.jsp?message=Passwords do not match");
+            return;
+        }
+
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+//            Connection conn = DriverManager.getConnection(jdbcUrl, dbUser, dbPassword);
+               try (Connection conn = DriverManager.getConnection(jdbcUrl, dbUser, dbPassword)) {
+                	 
+            	  System.out.println("Connection successful!");
+               
+                String checkQuery = "SELECT * FROM user WHERE username = ? OR email = ?";
+                try (PreparedStatement ps = conn.prepareStatement(checkQuery)) {
+                    ps.setString(1, username);
+                    ps.setString(2, email);
+
+                    try (ResultSet rs = ps.executeQuery()) {
+                        if (rs.next()) {
+                            response.sendRedirect("Registration.jsp?message=Username or Email already exists");
+                            return;
+                        }
+                    }
+                }
+
+                // Insert the new user into the database
+                String insertQuery = "INSERT INTO user (name, username, email, number, password) VALUES (?, ?, ?, ?, ?)";
+                try (PreparedStatement ps = conn.prepareStatement(insertQuery)) {
+                    ps.setString(1, name);
+                    ps.setString(2, username);
+                    ps.setString(3, email);
+                    ps.setString(4, number);
+                    ps.setString(5, password);
+
+                    int rows = ps.executeUpdate();
+                    if (rows > 0) {
+                        response.sendRedirect("Registration.jsp?message=Registration successful");
+                    } else {
+                        response.sendRedirect("Registration.jsp?message=Failed to register user");
+                    }
+                }
+                conn.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+                response.sendRedirect("Registration.jsp?message=Database error: " + e.getMessage());
+            }
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+            response.sendRedirect("Registration.jsp?message=JDBC Driver not found");
+        }
+    }
 }
