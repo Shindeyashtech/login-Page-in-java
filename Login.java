@@ -12,6 +12,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 
 import com.mysql.cj.protocol.Resultset;
 
@@ -60,19 +61,20 @@ public class Login extends HttpServlet {
 		 if (rs.next()) {
 			 HttpSession session = request.getSession();
 			 session.setAttribute("username", username );
-			 response.sendRedirect("welcome.jsp");
-			 
+			 response.sendRedirect("welcome.jsp"); 
 		 }else {
 			response.sendRedirect("Login.jsp?error=Invalid Username or password");
-		 }	
+		 }	}
 		 catch(Exception e){
 			 e.printStackTrace();
 			 response.sendRedirect("Login.jsp?error occured , please try again");	 
 		 }finally {
-			 
+			 try { if (rs !=null) rs.close() ;} catch ( SQLException e ) {e.printStackTrace();}
+			 try { if (ps !=null) ps.close() ;} catch ( SQLException e ) {e.printStackTrace();}
+			 try { if (con !=null) con.close() ;} catch ( SQLException e ) {e.printStackTrace();} 
 		 }
-	 	)
+	 }	
 	 }
-	}
+	
 
-}
+
