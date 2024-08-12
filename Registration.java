@@ -21,7 +21,8 @@ import java.sql.SQLException;
     /**
      * @see HttpServlet#HttpServlet()
      */
-    public Registration() {
+       
+	   public Registration() {
         super();
         // TODO Auto-generated constructor stub
     }
