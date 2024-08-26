@@ -6,7 +6,7 @@ import java.sql.SQLException;
 public class Main {
     public static void main(String[] args) {
         String jdbcUrl = "jdbc:mysql://localhost:3306/login";
-        String dbUser = "root";
+           String dbUser = "root";
         String dbPassword = "root";
         
         try {
