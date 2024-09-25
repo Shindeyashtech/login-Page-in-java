@@ -15,7 +15,7 @@ import java.sql.SQLException;
 /**
  * Servlet implementation class Registration
  */
-   public class Registration extends HttpServlet {
+      public class Registration extends HttpServlet {
 	private static final long serialVersionUID = 1L;
        
     /**
